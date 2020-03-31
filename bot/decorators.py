@@ -121,6 +121,9 @@ def redirect_output(destination_channel: int, bypass_roles: Container[int] = Non
     def wrap(func: Callable) -> Callable:
         @wraps(func)
         async def inner(self: Cog, ctx: Context, *args, **kwargs) -> None:
+
+            print(ctx.channel.id)
+            print(destination_channel)
             if ctx.channel.id == destination_channel:
                 log.trace(f"Command {ctx.command.name} was invoked in destination_channel, not redirecting")
                 await func(self, ctx, *args, **kwargs)
@@ -132,9 +135,14 @@ def redirect_output(destination_channel: int, bypass_roles: Container[int] = Non
                 return
 
             redirect_channel = ctx.guild.get_channel(destination_channel)
+            if redirect_channel is None:
+                print("redirect-channel is none")
+
             old_channel = ctx.channel
 
+            # problem here is redirect_channel is none type
             log.trace(f"Redirecting output of {ctx.author}'s command '{ctx.command.name}' to {redirect_channel.name}")
+
             ctx.channel = redirect_channel
             await ctx.channel.send(f"Here's the output of your command, {ctx.author.mention}")
             await func(self, ctx, *args, **kwargs)
