@@ -189,10 +189,17 @@ class Infractions(InfractionScheduler, commands.Cog):
         """Prematurely end the active mute infraction for the user."""
         await self.pardon_infraction(ctx, "mute", user)
 
+    # add reason here to this function as argument, maybe method overload may be better
     @command()
     async def unban(self, ctx: Context, user: FetchedMember) -> None:
         """Prematurely end the active ban infraction for the user."""
         await self.pardon_infraction(ctx, "ban", user)
+
+    # this is version I made to pass reason, if we remove this remove this comment also
+    @command()
+    async def unban(self, ctx: Context, user: FetchedMember, reason: str) -> None:
+        """Prematurely end the active ban infraction for the user."""
+        await self.pardon_infraction(ctx, "ban", user, reason)
 
     # endregion
     # region: Base apply functions
@@ -302,7 +309,6 @@ class Infractions(InfractionScheduler, commands.Cog):
         except discord.NotFound:
             log.info(f"Failed to unban user {user_id}: no active ban found on Discord")
             log_text["Note"] = "No active ban found on Discord."
-
         return log_text
 
     async def _pardon_action(self, infraction: utils.Infraction) -> t.Optional[t.Dict[str, str]]:
@@ -314,7 +320,6 @@ class Infractions(InfractionScheduler, commands.Cog):
         guild = self.bot.get_guild(constants.Guild.id)
         user_id = infraction["user"]
         reason = f"Infraction #{infraction['id']} expired or was pardoned."
-
         if infraction["type"] == "mute":
             return await self.pardon_mute(user_id, guild, reason)
         elif infraction["type"] == "ban":

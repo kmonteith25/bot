@@ -52,9 +52,9 @@ class InfractionScheduler(Scheduler):
                 self.schedule_task(infraction["id"], infraction)
 
     async def reapply_infraction(
-        self,
-        infraction: utils.Infraction,
-        apply_coro: t.Optional[t.Awaitable]
+            self,
+            infraction: utils.Infraction,
+            apply_coro: t.Optional[t.Awaitable]
     ) -> None:
         """Reapply an infraction if it's still active or deactivate it if less than 60 sec left."""
         # Calculate the time remaining, in seconds, for the mute.
@@ -75,11 +75,11 @@ class InfractionScheduler(Scheduler):
         log.info(f"Re-applied {infraction['type']} to user {infraction['user']} upon rejoining.")
 
     async def apply_infraction(
-        self,
-        ctx: Context,
-        infraction: utils.Infraction,
-        user: UserSnowflake,
-        action_coro: t.Optional[t.Awaitable] = None
+            self,
+            ctx: Context,
+            infraction: utils.Infraction,
+            user: UserSnowflake,
+            action_coro: t.Optional[t.Awaitable] = None
     ) -> None:
         """Apply an infraction to the user, log the infraction, and optionally notify the user."""
         infr_type = infraction["type"]
@@ -190,6 +190,10 @@ class InfractionScheduler(Scheduler):
 
         log.info(f"Applied {infr_type} infraction #{id_} to {user}.")
 
+    # make the fucnction below work with reasoning, and edit the functions that call it
+    # I think method overloading would work well because their are a few commands that call the function above
+    # so if we just make a new method that takes a reason we don't need to mess with un mute or un superstarify
+
     async def pardon_infraction(self, ctx: Context, infr_type: str, user: UserSnowflake) -> None:
         """Prematurely end an infraction for a user and log the action in the mod log."""
         log.trace(f"Pardoning {infr_type} infraction for {user}.")
@@ -288,15 +292,120 @@ class InfractionScheduler(Scheduler):
             colour=Colours.soft_green,
             title=f"Infraction {log_title}: {infr_type}",
             thumbnail=user.avatar_url_as(static_format="png"),
+            #  add reason by adding "\n Reason" to the text param or more ideal method would be add to log items
             text="\n".join(f"{k}: {v}" for k, v in log_text.items()),
             footer=footer,
-            content=log_content,
+            content=log_content
+        )
+
+    # this is version I made to pass reason, remove if not use and remove comment if this is removed
+    async def pardon_infraction(self, ctx: Context, infr_type: str, user: UserSnowflake, reason: str) -> None:
+        """Prematurely end an infraction for a user and log the action in the mod log."""
+        log.trace(f"Pardoning {infr_type} infraction for {user}.")
+
+        # Check the current active infraction
+        log.trace(f"Fetching active {infr_type} infractions for {user}.")
+        response = await self.bot.api_client.get(
+            'bot/infractions',
+            params={
+                'active': 'true',
+                'type': infr_type,
+                'user__id': user.id
+            }
+        )
+
+        if not response:
+            log.debug(f"No active {infr_type} infraction found for {user}.")
+            await ctx.send(f":x: There's no active {infr_type} infraction for user {user.mention}.")
+            return
+
+        # Deactivate the infraction and cancel its scheduled expiration task.
+        log_text = await self.deactivate_infraction(response[0], send_log=False)
+
+        log_text["Member"] = f"{user.mention}(`{user.id}`)"
+        log_text["Actor"] = str(ctx.message.author)
+        log_content = None
+        id_ = response[0]['id']
+        footer = f"ID: {id_}"
+
+        # If multiple active infractions were found, mark them as inactive in the database
+        # and cancel their expiration tasks.
+        if len(response) > 1:
+            log.warning(
+                f"Found more than one active {infr_type} infraction for user {user.id}; "
+                "deactivating the extra active infractions too."
+            )
+
+            footer = f"Infraction IDs: {', '.join(str(infr['id']) for infr in response)}"
+
+            log_note = f"Found multiple **active** {infr_type} infractions in the database."
+            if "Note" in log_text:
+                log_text["Note"] = f" {log_note}"
+            else:
+                log_text["Note"] = log_note
+
+            # deactivate_infraction() is not called again because:
+            #     1. Discord cannot store multiple active bans or assign multiples of the same role
+            #     2. It would send a pardon DM for each active infraction, which is redundant
+            for infraction in response[1:]:
+                id_ = infraction['id']
+                try:
+                    # Mark infraction as inactive in the database.
+                    await self.bot.api_client.patch(
+                        f"bot/infractions/{id_}",
+                        json={"active": False}
+                    )
+                except ResponseCodeError:
+                    log.exception(f"Failed to deactivate infraction #{id_} ({infr_type})")
+                    # This is simpler and cleaner than trying to concatenate all the errors.
+                    log_text["Failure"] = "See bot's logs for details."
+
+                # Cancel pending expiration task.
+                if infraction["expires_at"] is not None:
+                    self.cancel_task(infraction["id"])
+
+        # Accordingly display whether the user was successfully notified via DM.
+        dm_emoji = ""
+        if log_text.get("DM") == "Sent":
+            dm_emoji = ":incoming_envelope: "
+        elif "DM" in log_text:
+            dm_emoji = f"{constants.Emojis.failmail} "
+
+        # Accordingly display whether the pardon failed.
+        if "Failure" in log_text:
+            confirm_msg = ":x: failed to pardon"
+            log_title = "pardon failed"
+            log_content = ctx.author.mention
+
+            log.warning(f"Failed to pardon {infr_type} infraction #{id_} for {user}.")
+        else:
+            confirm_msg = f":ok_hand: pardoned"
+            log_title = "pardoned"
+
+            log.info(f"Pardoned {infr_type} infraction #{id_} for {user}.")
+
+        # Send a confirmation message to the invoking context.
+        log.trace(f"Sending infraction #{id_} pardon confirmation message.")
+        await ctx.send(
+            f"{dm_emoji}{confirm_msg} infraction **{infr_type}** for {user.mention}. "
+            f"{log_text.get('Failure', '')}"
+        )
+
+        # Send a log message to the mod log.
+        await self.mod_log.send_log_message(
+            icon_url=utils.INFRACTION_ICONS[infr_type][1],
+            colour=Colours.soft_green,
+            title=f"Infraction {log_title}: {infr_type}",
+            thumbnail=user.avatar_url_as(static_format="png"),
+            text="\n".join(f"{k}: {v}" for k, v in log_text.items()) + "\nReason: " + reason,
+            footer=footer,
+            content=log_content
         )
 
     async def deactivate_infraction(
-        self,
-        infraction: utils.Infraction,
-        send_log: bool = True
+            self,
+            infraction: utils.Infraction,
+            send_log: bool = True
     ) -> t.Dict[str, str]:
         """
         Deactivate an active infraction and return a dictionary of lines to send in a mod log.
