@@ -50,12 +50,21 @@ class Alias (Cog):
             title='Configured aliases',
             colour=Colour.blue()
         )
+        '''
+        Cannot run function inside paginate, so we have to move it outside
+        '''
+        available_aliases = {}
+        for name, value in inspect.getmembers(self):
+            if isinstance(value, Command) and name.endswith('_alias') \
+                    and await self.check_permission_of_alias_command(ctx, name[:-len('_alias')].replace('_', ' ')):
+                available_aliases.update({name: value})
+
         await LinePaginator.paginate(
             (
                 f"• `{ctx.prefix}{value.name}` "
                 f"=> `{ctx.prefix}{name[:-len('_alias')].replace('_', ' ')}`"
-                for name, value in inspect.getmembers(self)
-                if isinstance(value, Command) and name.endswith('_alias')
+                # Replace all members with only the available ones
+                for name, value in available_aliases.items()
             ),
             ctx, embed, empty=False, max_lines=20
         )
