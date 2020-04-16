@@ -34,6 +34,15 @@ class Alias (Cog):
 
         await ctx.invoke(cmd, *args, **kwargs)
 
+    async def check_permission_of_alias_command(self, ctx: Context, cmd_name: str) -> bool:
+        if self.bot.get_command(cmd_name) is not None:
+            if await self.bot.get_command(cmd_name).can_run(ctx):
+                return True
+            else:
+                return False
+        elif cmd_name == "get group":
+            return True
+
     @command(name='aliases')
     async def aliases_command(self, ctx: Context) -> None:
         """Show configured aliases on the bot."""
@@ -120,7 +129,6 @@ class Alias (Cog):
     ) -> None:
         """
         Alias for invoking <prefix>tags get [tag_name].
-
         tag_name: str - tag to be viewed.
         """
         await self.invoke(ctx, "tags get", tag_name=tag_name)
