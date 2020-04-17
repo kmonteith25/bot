@@ -35,6 +35,11 @@ class Alias (Cog):
         await ctx.invoke(cmd, *args, **kwargs)
 
     async def check_permission_of_alias_command(self, ctx: Context, cmd_name: str) -> bool:
+        """
+            takes in command name and checks if it can run given the context
+            "get group" needs to be hardcoded since it is not actually a command,
+            this command holds commands that actually run like, get docs
+        """
         if self.bot.get_command(cmd_name) is not None:
             if await self.bot.get_command(cmd_name).can_run(ctx):
                 return True
@@ -50,9 +55,9 @@ class Alias (Cog):
             title='Configured aliases',
             colour=Colour.blue()
         )
-        '''
-        Cannot run function inside paginate, so we have to move it outside
-        '''
+        """
+        Cannot run function inside paginate, so we have to move it outside.
+        """
         available_aliases = {}
         for name, value in inspect.getmembers(self):
             if isinstance(value, Command) and name.endswith('_alias') \
