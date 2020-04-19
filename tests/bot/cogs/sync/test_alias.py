@@ -1,5 +1,6 @@
 import asyncio
 import unittest
+import warnings
 
 from bot.cogs import bot
 from tests.helpers import MockBot, MockContext
@@ -16,6 +17,7 @@ class BotAliasTests(unittest.IsolatedAsyncioTestCase):
         self.bot_cog.add_cog(self.alias_inst)
         self.bot_cog.add_cog(self.big_bro_inst)
         self.ctx = MockContext()
+        warnings.simplefilter("ignore", (ResourceWarning, DeprecationWarning))
 
     def test_check_permission_of_alias_command_false(self):
         """Test if permitted alias command returns False"""
