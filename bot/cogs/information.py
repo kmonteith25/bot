@@ -395,14 +395,11 @@ class Information(Cog):
             return_value = False
         try:
             embed.add_field(name="Site Latency", value=str(pythonping.ping(
-                socket.gethostbyname(URLs.site_api.split(":", 1)[0])).rtt_avg_ms) + " milliseconds",
-                        inline=False)
+                socket.gethostbyname(URLs.site_api.split(":", 1)[0])).rtt_avg_ms) + " milliseconds", inline=False)
             embed.add_field(name="Discord Latency", value=str(pythonping.ping(
-                socket.gethostbyname("discord.com")).rtt_avg_ms) + " milliseconds",
-                        inline=False)
-        except socket.gaierror as err:
-            embed.add_field(name="Error", value="Something went wrong with getting correct timestamps",
-                inline=False)
+                socket.gethostbyname("discord.com")).rtt_avg_ms) + " milliseconds",inline=False)
+        except socket.gaierror:
+            embed.add_field(name="Error", value="Something went wrong with getting correct timestamps", inline=False)
             return_value = False
 
         await ctx.send(embed=embed)
