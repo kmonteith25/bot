@@ -1,6 +1,5 @@
 import asyncio
 import logging
-import warnings
 from typing import Optional
 from urllib.parse import quote as quote_url
 
@@ -24,7 +23,6 @@ class ResponseCodeError(ValueError):
         self.response_json = response_json or {}
         self.response_text = response_text
         self.response = response
-        warnings.simplefilter("ignore", DeprecationWarning)
 
     def __str__(self):
         response = self.response_json if self.response_json else self.response_text
