@@ -1,13 +1,14 @@
+import os
+
 import requests
 import rootpath
 from bot import constants
-
 path_to_project = rootpath.detect()
 
 
 def find_base_url() -> str or bool:
     url = "https://api.github.com/users/" + constants.github_username.lower() + "/repos"
-    header = {'Authorization': GH_API_TOKEN}
+    header = {'Authorization': os.environ.get("GH_API_TOKEN")}
     request = requests.get(url, headers=header)
     data = request.json()
     for repo in data:
@@ -16,7 +17,7 @@ def find_base_url() -> str or bool:
 
 
 def find_file_url(path: str) -> str or bool:
-    header = {'Authorization': GH_API_TOKEN}
+    header = {'Authorization': os.environ.get("GH_API_TOKEN")}
     response = requests.get("https://api.github.com/repos/" + constants.github_username + "/" +
                             constants.github_repo + "/contents" + path, headers=header)
 
