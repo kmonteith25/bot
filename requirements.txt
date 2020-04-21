@@ -17,4 +17,3 @@ colorama
 jsonpickle
 pytest-asyncio
 pythonping
-socket
