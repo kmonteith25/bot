@@ -19,6 +19,5 @@ RUN pipenv install --system --deploy
 # Copy the source code in last to optimize rebuilding the image
 COPY . .
 
-
 ENTRYPOINT ["python3"]
 CMD ["-m", "bot"]
