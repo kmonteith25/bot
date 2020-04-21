@@ -4,12 +4,10 @@ import unittest
 import unittest.mock
 from datetime import datetime
 import discord
-
 from bot import constants
 from bot.cogs import information, alias
 from bot.decorators import InChannelCheckFailure
 from tests import helpers
-from tests.helpers import MockGuild
 
 COG_PATH = "bot.cogs.information.Information"
 
@@ -612,7 +610,7 @@ class PingCommandTests(unittest.TestCase):
     def test_bot_latency_correct_time(self, create_embed, constants):
         """Ping should return correct ping responses dependent on message sent."""
         ctx = helpers.MockContext()
-        ctx.message = helpers.MockMessage();
+        ctx.message = helpers.MockMessage()
         timestamp = 1587263832
         ctx.message.created_at = datetime.fromtimestamp(timestamp)
         self.assertEqual(
