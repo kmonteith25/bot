@@ -489,6 +489,11 @@ reddit:
     secret:    !ENV "REDDIT_SECRET"
 
 
+github:
+    username: 'kmonteith25'
+    repository_name: 'bot'
+
+
 wolfram:
     # Max requests per day.
     user_limit_day: 10

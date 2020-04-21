@@ -5,6 +5,7 @@ import unittest.mock
 
 import discord
 
+
 from bot import constants
 from bot.cogs import information
 from bot.decorators import InChannelCheckFailure
@@ -29,6 +30,60 @@ class InformationCogTests(unittest.TestCase):
 
         self.ctx = helpers.MockContext()
         self.ctx.author.roles.append(self.moderator_role)
+
+    def test_source_command_good_argument(self):
+        """Tests the `source` command with an valid argument."""
+        self.cog.source.can_run = unittest.mock.AsyncMock()
+        self.cog.source.can_run.return_value = True
+
+        coroutine = self.cog.source.callback(self.cog, self.ctx, "free")
+
+        asyncio.run(coroutine)
+
+        _, dummy_kwargs = self.ctx.send.call_args
+
+        dummy_embed = dummy_kwargs["embed"]
+
+        self.assertEqual(dummy_embed.title, "Source Results")
+        self.assertEqual(dummy_embed.colour, discord.Colour.blurple())
+
+        self.assertEqual(dummy_embed.fields[0].value, "https://github.com/kmonteith25/bot/blob/master/bot/cogs/free.py")
+
+    def test_source_command_no_argument(self):
+        """Tests the `source` command with no argument."""
+        self.cog.source.can_run = unittest.mock.AsyncMock()
+        self.cog.source.can_run.return_value = True
+
+        coroutine = self.cog.source.callback(self.cog, self.ctx)
+
+        asyncio.run(coroutine)
+
+        _, dummy_kwargs = self.ctx.send.call_args
+
+        dummy_embed = dummy_kwargs["embed"]
+
+        self.assertEqual(dummy_embed.title, "Source Results")
+        self.assertEqual(dummy_embed.colour, discord.Colour.blurple())
+
+        self.assertEqual(dummy_embed.fields[0].value, "https://github.com/kmonteith25/bot")
+
+    def test_source_command_bad_argument(self):
+        """Tests the `source` command with an invalid argument."""
+        self.cog.source.can_run = unittest.mock.AsyncMock()
+        self.cog.source.can_run.return_value = True
+
+        coroutine = self.cog.source.callback(self.cog, self.ctx, "skjfnqklnvklrfbhbjfklsbfsfb")
+
+        asyncio.run(coroutine)
+
+        _, dummy_kwargs = self.ctx.send.call_args
+
+        dummy_embed = dummy_kwargs["embed"]
+
+        self.assertEqual(dummy_embed.title, "Source Results")
+        self.assertEqual(dummy_embed.colour, discord.Colour.blurple())
+        self.assertEqual(dummy_embed.fields[0].name, "Error")
+        self.assertEqual(dummy_embed.fields[0].value, "Not an valid command")
 
     def test_roles_command_command(self):
         """Test if the `role_info` command correctly returns the `moderator_role`."""

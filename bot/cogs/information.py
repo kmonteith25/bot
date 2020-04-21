@@ -2,6 +2,7 @@ import colorsys
 import logging
 import pprint
 import textwrap
+import GithubLinkFinder
 from collections import Counter, defaultdict
 from string import Template
 from typing import Any, Mapping, Optional, Union
@@ -17,6 +18,15 @@ from bot.pagination import LinePaginator
 from bot.utils.checks import cooldown_with_role_bypass, with_role_check
 from bot.utils.time import time_since
 
+from types import ModuleType
+from discord.ext import commands
+from bot import cogs
+import typing as t
+from unittest import mock
+import pkgutil
+import importlib
+import rootpath
+
 log = logging.getLogger(__name__)
 
 
@@ -25,6 +35,48 @@ class Information(Cog):
 
     def __init__(self, bot: Bot):
         self.bot = bot
+
+    @staticmethod
+    def walk_commands(cog: commands.Cog) -> t.Iterator[commands.Command]:
+        """An iterator that recursively walks through `cog`'s commands and subcommands."""
+        # Can't use Bot.walk_commands() or Cog.get_commands() cause those are instance methods.
+        for cmd in cog.__cog_commands__:
+            if cmd.parent is None:
+                yield cmd
+                if isinstance(cmd, commands.GroupMixin):
+                    # Annoyingly it returns duplicates for each alias so use a set to fix that
+                    yield from set(cmd.walk_commands())
+
+    @staticmethod
+    def walk_modules() -> t.Iterator[ModuleType]:
+        """Yield imported modules from the bot.cogs subpackage."""
+
+        def on_error(name: str) -> t.NoReturn:
+            raise ImportError(name=name)
+
+        # The mock prevents asyncio.get_event_loop() from being called.
+        with mock.patch("discord.ext.tasks.loop"):
+            for module in pkgutil.walk_packages(cogs.__path__, "bot.cogs.", onerror=on_error):
+                if not module.ispkg:
+                    yield importlib.import_module(module.name)
+
+    @staticmethod
+    def walk_cogs(module: ModuleType) -> t.Iterator[commands.Cog]:
+        """Yield all cogs defined in an extension."""
+        for obj in module.__dict__.values():
+            # Check if it's a class type cause otherwise issubclass() may raise a TypeError.
+            is_cog = isinstance(obj, type) and issubclass(obj, commands.Cog)
+            if is_cog and obj.__module__ == module.__name__:
+                yield obj
+
+    def get_commands_path(self, command_name: str) -> t.Iterator[commands.Command] or False:
+        """Yield all commands for all cogs in all extensions."""
+        for module in self.walk_modules():
+            for cog in self.walk_cogs(module):
+                for cmd in self.walk_commands(cog):
+                    if str(cmd).lower() == command_name.lower():
+                        return module.__file__.replace(rootpath.detect(), "", 1)
+        return False
 
     @with_role(*constants.MODERATION_ROLES)
     @command(name="roles")
@@ -92,6 +144,25 @@ class Information(Cog):
             embed.add_field(name="Permission code", value=role.permissions.value, inline=True)
 
             await ctx.send(embed=embed)
+
+    @command(name="source")
+    async def source(self, ctx: Context, command_name: str = None):
+        """Gets the github link to base repository or command. If no command is provided gives back base link"""
+        embed = Embed()
+        embed.colour = Colour.blurple()
+        embed.title = "Source Results"
+
+        if command_name is None:
+            embed.add_field(name="Link", value=GithubLinkFinder.find_base_url(), inline=False)
+            results = await ctx.send(embed=embed)
+        else:
+            path = self.get_commands_path(command_name)
+            if path is False:
+                embed.add_field(name="Error", value="Not an valid command", inline=False)
+            else:
+                embed.add_field(name="Link", value=GithubLinkFinder.find_file_url(path), inline=False)
+            results = await ctx.send(embed=embed)
+        return results
 
     @command(name="server", aliases=["server_info", "guild", "guild_info"])
     async def server_info(self, ctx: Context) -> None:
@@ -374,3 +445,5 @@ class Information(Cog):
 def setup(bot: Bot) -> None:
     """Load the Information cog."""
     bot.add_cog(Information(bot))
+
+
