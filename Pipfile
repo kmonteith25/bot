@@ -22,7 +22,6 @@ coloredlogs = "~=14.0"
 colorama = {version = "~=0.4.3",sys_platform = "== 'win32'"}
 jsonpickle = "*"
 pythonping = "*"
-socket = "*"
 statsd = "~=3.3"
 
 [dev-packages]
