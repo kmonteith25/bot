@@ -603,7 +603,7 @@ class PingCommandTests(unittest.TestCase):
     def test_bot_latency_correct_context(self, create_embed, constants):
         """Ping should return correct ping responses dependent on message sent."""
         ctx = helpers.MockContext()
-        ctx.message = helpers.MockMessage();
+        ctx.message = helpers.MockMessage()
         ctx.message.created_at = "D"
         coroutine = self.cog.ping.callback(self.cog, ctx)
         self.assertFalse(asyncio.run(coroutine))
