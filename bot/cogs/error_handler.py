@@ -113,7 +113,7 @@ class ErrorHandler(Cog):
             log.debug("Cancelling attempt to invoke silence/unsilence due to failed checks.")
             return False
         if command.startswith("shh"):
-            await ctx.invoke(silence_command, duration=min(command.count("h")*2, 15))
+            await ctx.invoke(silence_command, duration=min(command.count("h") * 2, 15))
             return True
         elif command.startswith("unshh"):
             await ctx.invoke(self.bot.get_command("unsilence"))

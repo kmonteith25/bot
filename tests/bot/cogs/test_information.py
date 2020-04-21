@@ -5,7 +5,7 @@ import unittest.mock
 from datetime import datetime
 import discord
 from bot import constants
-from bot.cogs import information, alias
+from bot.cogs import information
 from bot.decorators import InChannelCheckFailure
 from tests import helpers
 

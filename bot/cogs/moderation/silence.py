@@ -41,7 +41,7 @@ class SilenceNotifier(tasks.Loop):
     async def _notifier(self) -> None:
         """Post notice of `_silenced_channels` with their silenced duration to `_alert_channel` periodically."""
         # Wait for 15 minutes between notices with pause at start of loop.
-        if self._current_loop and not self._current_loop/60 % 15:
+        if self._current_loop and not self._current_loop / 60 % 15:
             log.debug(
                 f"Sending notice with channels: "
                 f"{', '.join(f'#{channel} ({channel.id})' for channel in self._silenced_channels)}."
@@ -90,7 +90,7 @@ class Silence(commands.Cog):
             return
 
         await ctx.send(f"{Emojis.check_mark} silenced current channel for {duration} minute(s).")
-        await asyncio.sleep(duration*60)
+        await asyncio.sleep(duration * 60)
         log.info(f"Unsilencing channel after set delay.")
         await ctx.invoke(self.unsilence)
 

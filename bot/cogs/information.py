@@ -8,7 +8,7 @@ import pythonping
 from collections import Counter, defaultdict
 from string import Template
 from typing import Any, Mapping, Optional, Union
-from bot.constants import Keys, URLs
+from bot.constants import URLs
 
 from discord import Colour, Embed, Member, Message, Role, Status, utils
 from discord.ext.commands import BucketType, Cog, Context, Paginator, command, group
@@ -385,7 +385,7 @@ class Information(Cog):
             time_difference = time_difference_milliseconds(datetime.now(), ctx.message)
             embed.add_field(name="Bot Latency", value=str(time_difference) + " milliseconds",
                             inline=False)
-        except TypeError as err:
+        except TypeError:
             embed.add_field(name="Error", value="Incorrect Context setup",
                             inline=False)
             return_value = False
@@ -396,13 +396,13 @@ class Information(Cog):
         try:
             embed.add_field(name="Site Latency", value=str(pythonping.ping(
                 socket.gethostbyname(URLs.site_api.split(":", 1)[0])).rtt_avg_ms) + " milliseconds",
-                            inline=False)
+                        inline=False)
             embed.add_field(name="Discord Latency", value=str(pythonping.ping(
                 socket.gethostbyname("discord.com")).rtt_avg_ms) + " milliseconds",
-                            inline=False)
+                        inline=False)
         except socket.gaierror as err:
             embed.add_field(name="Error", value="Something went wrong with getting correct timestamps",
-                            inline=False)
+                inline=False)
             return_value = False
 
         await ctx.send(embed=embed)
