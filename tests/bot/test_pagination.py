@@ -10,6 +10,14 @@ class LinePaginatorTests(TestCase):
         """Create a paginator for the test method."""
         self.paginator = pagination.LinePaginator(prefix='', suffix='', max_size=30)
 
+    def test_add_line(self):
+        """`add_line` should work."""
+        self.paginator.add_line('x')
+
+    def test_add_blank_line(self):
+        """`add_line` should not add a blank line"""
+        self.paginator.add_line()
+
     def test_add_line_raises_on_too_long_lines(self):
         """`add_line` should raise a `RuntimeError` for too long lines."""
         message = f"Line exceeds maximum page size {self.paginator.max_size - 2}"
@@ -28,9 +36,12 @@ class ImagePaginatorTests(TestCase):
         """Create a paginator for the test method."""
         self.paginator = pagination.ImagePaginator()
 
+    def test_add_line(self):
+        """`add_line` should work."""
+        self.paginator.add_line('x')
+
     def test_add_image_appends_image(self):
         """`add_image` appends the image to the image list."""
         image = 'lemon'
         self.paginator.add_image(image)
-
         assert self.paginator.images == [image]
