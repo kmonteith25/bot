@@ -91,9 +91,23 @@ class Filtering(Cog):
             },
             "watch_regex": {
                 "enabled": Filter.watch_regex,
+                "type": "filter",
                 "function": self._has_watch_regex_match,
-                "type": "watchlist",
                 "content_only": True,
+                "user_notification": Filter.notify_user_invites,
+                "notification_msg": (
+                    f"You messaged a bad word"
+                )
+            },
+            "watch_username": {
+                "enabled": Filter.watch_regex,
+                "type": "filter",
+                "function": self._has_watch_regex_match,
+                "content_only": True,
+                "user_notification": Filter.notify_user_invites,
+                "notification_msg": (
+                    f"Your username contains an inappropriate word, your message has been deleted. Your nickname has been reverted back to your username.'"
+                )
             },
             "watch_rich_embeds": {
                 "enabled": Filter.watch_rich_embeds,
@@ -111,6 +125,7 @@ class Filtering(Cog):
     @Cog.listener()
     async def on_message(self, msg: Message) -> None:
         """Invoke message filter for new messages."""
+        await self._filter_usernames(msg)
         await self._filter_message(msg)
 
     @Cog.listener()
@@ -125,6 +140,75 @@ class Filtering(Cog):
         else:
             delta = relativedelta(after.edited_at, before.edited_at).microseconds
         await self._filter_message(after, delta)
+
+    async def _filter_usernames(self, msg: Message) -> None:
+        role_whitelisted = False
+        if type(msg.author) is Member:
+            for role in msg.author.roles:
+                if role.id in Filter.role_whitelist:
+                    role_whitelisted = True
+
+        filter_username = ( not role_whitelisted and not msg.author.bot )
+
+        if filter_username:
+            _filter = self.filters.get("watch_regex")
+            match = await _filter["function"](msg.author.display_name)
+            if match:
+                print(match)
+                if _filter["type"] == "filter":
+                    try:
+                        await msg.delete()
+                    except discord.errors.NotFound:
+                        return
+                if _filter["user_notification"]:
+                    await self.notify_member(msg.author, _filter["notification_msg"], msg.channel)
+                    if isinstance(msg.channel, DMChannel):
+                        channel_str = "via DM"
+                    else:
+                        channel_str = f"in {msg.channel.mention}"
+                        #
+                        # # Word and match stats for watch_regex
+                        # if filter_name == "watch_regex":
+                        #     #print(msg.content)
+                        #     surroundings = match.string[max(match.start() - 10, 0): match.end() + 10]
+                        #     #print(surroundings)
+                        #     message_content = (
+                        #         f"**Match:** '{match[0]}'\n"
+                        #         f"**Location:** '...{escape_markdown(surroundings)}...'\n"
+                        #         f"\n**Original Message:**\n{escape_markdown(msg.content)}"
+                        #     )
+                        # else:  # Use content of discord Message
+                        #     message_content = msg.content
+                        #
+                        # message = (
+                        #     f"The {filter_name} {_filter['type']} was triggered "
+                        #     f"by **{msg.author}** "
+                        #     f"(`{msg.author.id}`) {channel_str} with [the "
+                        #     f"following message]({msg.jump_url}):\n\n"
+                        #     f"{message_content}"
+                        # )
+                        #
+                        # log.debug(message)
+                        #
+                        # self.bot.stats.incr(f"filters.{filter_name}")
+                        #
+                        # additional_embeds = None
+                        # additional_embeds_msg = None
+
+                        # await self.mod_log.send_log_message(
+                        #     icon_url=Icons.filtering,
+                        #     colour=Colour(Colours.soft_red),
+                        #     title=f"{_filter['type'].title()} triggered!",
+                        #     text=message,
+                        #     thumbnail=msg.author.avatar_url_as(static_format="png"),
+                        #     channel_id=Channels.mod_alerts,
+                        #     ping_everyone=Filter.ping_everyone,
+                        #     additional_embeds=additional_embeds,
+                        #     additional_embeds_msg=additional_embeds_msg
+                        # )
+                        #
+                        # break
+
 
     async def _filter_message(self, msg: Message, delta: Optional[int] = None) -> None:
         """Filter the input message to see if it violates any of our rules, and then respond accordingly."""

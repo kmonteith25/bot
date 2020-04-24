@@ -363,7 +363,7 @@ keys:
 
 urls:
     # PyDis site vars
-    site:        &DOMAIN       "pythondiscord.local:8000"
+    site:        &DOMAIN       "web:8000"
     site_api:    &API    !JOIN ["api.", *DOMAIN]
     site_paste:  &PASTE  !JOIN ["paste.", *DOMAIN]
     site_staff:  &STAFF  !JOIN ["staff.", *DOMAIN]
@@ -487,11 +487,6 @@ reddit:
         - 'r/Python'
     client_id: !ENV "REDDIT_CLIENT_ID"
     secret:    !ENV "REDDIT_SECRET"
-
-
-github:
-    username: 'kmonteith25'
-    repository_name: 'bot'
 
 
 wolfram:
