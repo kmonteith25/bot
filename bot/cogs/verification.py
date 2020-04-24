@@ -202,6 +202,8 @@ class Verification(Cog):
     @tasks.loop(hours=12)
     async def periodic_ping(self) -> None:
         """Every week, mention @everyone to remind them to verify."""
+        print("constants.channels.verification")
+        print(constants.Channels.verification)
         messages = self.bot.get_channel(constants.Channels.verification).history(limit=10)
         need_to_post = True  # True if a new message needs to be sent.
 

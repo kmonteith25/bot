@@ -23,6 +23,10 @@ colorama = {version = "~=0.4.3",sys_platform = "== 'win32'"}
 jsonpickle = "*"
 pythonping = "*"
 statsd = "~=3.3"
+grepfunc = "*"
+source = "*"
+rootpath = "*"
+gitpython = "*"
 
 [dev-packages]
 coverage = "~=5.0"

@@ -200,9 +200,9 @@ class Bot(metaclass=YAMLGetter):
     token: str
     sentry_dsn: str
 
+
 class Filter(metaclass=YAMLGetter):
     section = "filter"
-
     filter_zalgo: bool
     filter_invites: bool
     filter_domains: bool
@@ -443,6 +443,7 @@ class Guild(metaclass=YAMLGetter):
     staff_channels: List[int]
     staff_roles: List[int]
 
+
 class Keys(metaclass=YAMLGetter):
     section = "keys"
 
@@ -491,6 +492,13 @@ class Reddit(metaclass=YAMLGetter):
     subreddits: list
     client_id: str
     secret: str
+
+
+class Github(metaclass=YAMLGetter):
+    section = "github"
+
+    username: str
+    repository_name: str
 
 
 class Wolfram(metaclass=YAMLGetter):
@@ -666,3 +674,7 @@ ERROR_REPLIES = [
     "Noooooo!!",
     "I can't believe you've done this",
 ]
+
+
+github_username = Github.username
+github_repo = Github.repository_name

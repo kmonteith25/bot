@@ -34,6 +34,20 @@ class Alias (Cog):
 
         await ctx.invoke(cmd, *args, **kwargs)
 
+    async def check_permission_of_alias_command(self, ctx: Context, cmd_name: str) -> bool:
+        """
+            takes in command name and checks if it can run given the context
+            "get group" needs to be hardcoded since it is not actually a command,
+            this command holds commands that actually run like, get docs
+        """
+        if self.bot.get_command(cmd_name) is not None:
+            if await self.bot.get_command(cmd_name).can_run(ctx):
+                return True
+            else:
+                return False
+        elif cmd_name == "get group":
+            return True
+
     @command(name='aliases')
     async def aliases_command(self, ctx: Context) -> None:
         """Show configured aliases on the bot."""
@@ -41,12 +55,21 @@ class Alias (Cog):
             title='Configured aliases',
             colour=Colour.blue()
         )
+        """
+        Cannot run function inside paginate, so we have to move it outside.
+        """
+        available_aliases = {}
+        for name, value in inspect.getmembers(self):
+            if isinstance(value, Command) and name.endswith('_alias') \
+                    and await self.check_permission_of_alias_command(ctx, name[:-len('_alias')].replace('_', ' ')):
+                available_aliases.update({name: value})
+
         await LinePaginator.paginate(
             (
                 f"• `{ctx.prefix}{value.name}` "
                 f"=> `{ctx.prefix}{name[:-len('_alias')].replace('_', ' ')}`"
-                for name, value in inspect.getmembers(self)
-                if isinstance(value, Command) and name.endswith('_alias')
+                # Replace all members with only the available ones
+                for name, value in available_aliases.items()
             ),
             ctx, embed, empty=False, max_lines=20
         )
@@ -120,7 +143,6 @@ class Alias (Cog):
     ) -> None:
         """
         Alias for invoking <prefix>tags get [tag_name].
-
         tag_name: str - tag to be viewed.
         """
         await self.invoke(ctx, "tags get", tag_name=tag_name)
