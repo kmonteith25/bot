@@ -200,8 +200,10 @@ class Filtering(Cog):
                 if role.id in Filter.role_whitelist:
                     role_whitelisted = True
 
-        filter_message = (msg.channel.id not in Filter.channel_whitelist and not
-        role_whitelisted and not msg.author.bot)
+        filter_message = (
+            msg.channel.id not in Filter.channel_whitelist and not
+            role_whitelisted and not msg.author.bot
+        )
 
         if filter_message:
             for filter_name, _filter in self.filters.items():
