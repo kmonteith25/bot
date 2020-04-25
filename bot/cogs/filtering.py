@@ -33,7 +33,7 @@ URL_RE = re.compile(r"(https?://[^\s]+)", flags=re.IGNORECASE)
 ZALGO_RE = re.compile(r"[\u0300-\u036F\u0489]")
 
 WORD_WATCHLIST_PATTERNS = [
-    re.compile(fr'\b{expression}\b', flags=re.IGNORECASE) for expression in Filter.word_watchlist
+    re.compile(fr'{expression}', flags=re.IGNORECASE) for expression in Filter.word_watchlist
 ]
 TOKEN_WATCHLIST_PATTERNS = [
     re.compile(fr'{expression}', flags=re.IGNORECASE) for expression in Filter.token_watchlist
@@ -99,7 +99,7 @@ class Filtering(Cog):
                     f"You messaged a bad word"
                 )
             },
-            "watch_username": {
+            "watch_nickname": {
                 "enabled": Filter.watch_regex,
                 "type": "filter",
                 "function": self._has_watch_regex_match,
@@ -148,13 +148,11 @@ class Filtering(Cog):
                 if role.id in Filter.role_whitelist:
                     role_whitelisted = True
 
-        filter_username = ( not role_whitelisted and not msg.author.bot )
-
+        filter_username = (not role_whitelisted and not msg.author.bot )
         if filter_username:
-            _filter = self.filters.get("watch_regex")
+            _filter = self.filters.get("watch_nickname")
             match = await _filter["function"](msg.author.display_name)
             if match:
-                print(match)
                 if _filter["type"] == "filter":
                     try:
                         await msg.delete()
@@ -166,48 +164,30 @@ class Filtering(Cog):
                         channel_str = "via DM"
                     else:
                         channel_str = f"in {msg.channel.mention}"
-                        #
-                        # # Word and match stats for watch_regex
-                        # if filter_name == "watch_regex":
-                        #     #print(msg.content)
-                        #     surroundings = match.string[max(match.start() - 10, 0): match.end() + 10]
-                        #     #print(surroundings)
-                        #     message_content = (
-                        #         f"**Match:** '{match[0]}'\n"
-                        #         f"**Location:** '...{escape_markdown(surroundings)}...'\n"
-                        #         f"\n**Original Message:**\n{escape_markdown(msg.content)}"
-                        #     )
-                        # else:  # Use content of discord Message
-                        #     message_content = msg.content
-                        #
-                        # message = (
-                        #     f"The {filter_name} {_filter['type']} was triggered "
-                        #     f"by **{msg.author}** "
-                        #     f"(`{msg.author.id}`) {channel_str} with [the "
-                        #     f"following message]({msg.jump_url}):\n\n"
-                        #     f"{message_content}"
-                        # )
-                        #
-                        # log.debug(message)
-                        #
-                        # self.bot.stats.incr(f"filters.{filter_name}")
-                        #
-                        # additional_embeds = None
-                        # additional_embeds_msg = None
-
-                        # await self.mod_log.send_log_message(
-                        #     icon_url=Icons.filtering,
-                        #     colour=Colour(Colours.soft_red),
-                        #     title=f"{_filter['type'].title()} triggered!",
-                        #     text=message,
-                        #     thumbnail=msg.author.avatar_url_as(static_format="png"),
-                        #     channel_id=Channels.mod_alerts,
-                        #     ping_everyone=Filter.ping_everyone,
-                        #     additional_embeds=additional_embeds,
-                        #     additional_embeds_msg=additional_embeds_msg
-                        # )
-                        #
-                        # break
+                surroundings = match.string[max(match.start() - 10, 0): match.end() + 10]
+                message_content = (
+                    f"**Match:** '{match[0]}'\n"
+                    f"**Nickname:** '{escape_markdown(surroundings)}'"
+                )
+                message = (
+                    f"The nickname filter was triggered "
+                    f"by **{msg.author}** "
+                    f"(`{msg.author.id}`) {channel_str} with [the "
+                    f"following username({msg.author.display_name}):\n\n"
+                    f"{message_content}"
+                )
+                log.debug(message)
+                await msg.author.edit(nick=msg.author.name)
+                self.bot.stats.incr(f"filters.Nickname Filter")
+                await self.mod_log.send_log_message(
+                    icon_url=Icons.filtering,
+                    colour=Colour(Colours.soft_red),
+                    title=f"{_filter['type'].title()} triggered!",
+                    text=message,
+                    thumbnail=msg.author.avatar_url_as(static_format="png"),
+                    channel_id=Channels.mod_alerts,
+                    ping_everyone=Filter.ping_everyone
+                )
 
 
     async def _filter_message(self, msg: Message, delta: Optional[int] = None) -> None:
