@@ -18,13 +18,13 @@ from bot.constants import (
 log = logging.getLogger(__name__)
 
 INVITE_RE = re.compile(
-    r"(?:discord(?:[\.,]|dot)gg|"                     # Could be discord.gg/
-    r"discord(?:[\.,]|dot)com(?:\/|slash)invite|"     # or discord.com/invite/
+    r"(?:discord(?:[\.,]|dot)gg|"  # Could be discord.gg/
+    r"discord(?:[\.,]|dot)com(?:\/|slash)invite|"  # or discord.com/invite/
     r"discordapp(?:[\.,]|dot)com(?:\/|slash)invite|"  # or discordapp.com/invite/
-    r"discord(?:[\.,]|dot)me|"                        # or discord.me
-    r"discord(?:[\.,]|dot)io"                         # or discord.io.
-    r")(?:[\/]|slash)"                                # / or 'slash'
-    r"([a-zA-Z0-9]+)",                                # the invite code itself
+    r"discord(?:[\.,]|dot)me|"  # or discord.me
+    r"discord(?:[\.,]|dot)io"  # or discord.io.
+    r")(?:[\/]|slash)"  # / or 'slash'
+    r"([a-zA-Z0-9]+)",  # the invite code itself
     flags=re.IGNORECASE
 )
 
@@ -148,7 +148,7 @@ class Filtering(Cog):
                 if role.id in Filter.role_whitelist:
                     role_whitelisted = True
 
-        filter_username = (not role_whitelisted and not msg.author.bot )
+        filter_username = (not role_whitelisted and not msg.author.bot)
         if filter_username:
             _filter = self.filters.get("watch_nickname")
             match = await _filter["function"](msg.author.display_name)
@@ -189,7 +189,6 @@ class Filtering(Cog):
                     ping_everyone=Filter.ping_everyone
                 )
 
-
     async def _filter_message(self, msg: Message, delta: Optional[int] = None) -> None:
         """Filter the input message to see if it violates any of our rules, and then respond accordingly."""
         # Should we filter this message?
@@ -201,9 +200,9 @@ class Filtering(Cog):
                     role_whitelisted = True
 
         filter_message = (
-            msg.channel.id not in Filter.channel_whitelist and not  # Channel not in whitelist
-            role_whitelisted and not                                # Role not in whitelist
-            msg.author.bot                                          # Author not a bot
+                msg.channel.id not in Filter.channel_whitelist and not  # Channel not in whitelist
+        role_whitelisted and not  # Role not in whitelist
+                msg.author.bot  # Author not a bot
         )
 
         # If none of the above, we can start filtering.
