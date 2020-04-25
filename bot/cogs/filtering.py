@@ -106,7 +106,8 @@ class Filtering(Cog):
                 "content_only": True,
                 "user_notification": Filter.notify_user_invites,
                 "notification_msg": (
-                    f"Your username contains an inappropriate word, your message has been deleted. Your nickname has been reverted back to your username.'"
+                    f"Your username contains an inappropriate word, your message has been deleted. "
+                    f"Your nickname has been reverted back to your username.'"
                 )
             },
             "watch_rich_embeds": {
@@ -199,10 +200,8 @@ class Filtering(Cog):
                 if role.id in Filter.role_whitelist:
                     role_whitelisted = True
 
-        filter_message = (
-                msg.channel.id not in Filter.channel_whitelist and not  # Channel not in whitelist
-        role_whitelisted and not  # Role not in whitelist
-                msg.author.bot  # Author not a bot
+        filter_message = ( msg.channel.id not in Filter.channel_whitelist and not
+        role_whitelisted and not msg.author.bot
         )
 
         # If none of the above, we can start filtering.
