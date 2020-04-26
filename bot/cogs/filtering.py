@@ -126,7 +126,7 @@ class Filtering(Cog):
     @Cog.listener()
     async def on_message(self, msg: Message) -> None:
         """Invoke message filter for new messages."""
-        await self._filter_usernames(msg)
+        await self._filter_nicknames(msg)
         await self._filter_message(msg)
 
     @Cog.listener()
@@ -142,15 +142,15 @@ class Filtering(Cog):
             delta = relativedelta(after.edited_at, before.edited_at).microseconds
         await self._filter_message(after, delta)
 
-    async def _filter_usernames(self, msg: Message) -> None:
+    async def _filter_nicknames(self, msg: Message) -> None:
         role_whitelisted = False
         if type(msg.author) is Member:
             for role in msg.author.roles:
                 if role.id in Filter.role_whitelist:
                     role_whitelisted = True
 
-        filter_username = (not role_whitelisted and not msg.author.bot)
-        if filter_username:
+        filter_nickname = (not role_whitelisted and not msg.author.bot)
+        if filter_nickname:
             _filter = self.filters.get("watch_nickname")
             match = await _filter["function"](msg.author.display_name)
             if match:
