@@ -48,5 +48,3 @@ class FilteringCogTests(unittest.TestCase):
         return_values = asyncio.run(self.cog.nickname_filter.callback(self.cog, self.ctx.message))
         new_nickname = return_values[1]
         self.assertEqual(username, new_nickname)
-
-

@@ -6,7 +6,6 @@ import discord
 from tests import helpers
 
 
-
 class DiscordMocksTests(unittest.TestCase):
     """Tests for our specialized discord.py mocks."""
 

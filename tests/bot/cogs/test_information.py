@@ -221,6 +221,7 @@ class InformationCogTests(unittest.TestCase):
         self.assertEqual(embed.thumbnail.url, 'a-lemon.jpg')
 '''
 
+
 class UserInfractionHelperMethodTests(unittest.TestCase):
     """Tests for the helper methods of the `!user` command."""
 

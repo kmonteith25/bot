@@ -254,7 +254,6 @@ class MockUser(CustomMockMixin, unittest.mock.Mock, ColourMixin, HashableMixin):
             self.mention = f"@{self.name}"
 
 
-
 class MockAPIClient(CustomMockMixin, unittest.mock.MagicMock):
     """
     A MagicMock subclass to mock APIClient objects.
