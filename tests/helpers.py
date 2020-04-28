@@ -247,11 +247,12 @@ class MockUser(CustomMockMixin, unittest.mock.Mock, ColourMixin, HashableMixin):
     spec_set = user_instance
 
     def __init__(self, **kwargs) -> None:
-        default_kwargs = {'name': 'user', 'id': next(self.discord_id), 'bot': False}
+        default_kwargs = {'name': 'user', 'id': next(self.discord_id), 'bot': False, 'nick': 'user', 'display_name': 'user'}
         super().__init__(**collections.ChainMap(kwargs, default_kwargs))
 
         if 'mention' not in kwargs:
             self.mention = f"@{self.name}"
+
 
 
 class MockAPIClient(CustomMockMixin, unittest.mock.MagicMock):
