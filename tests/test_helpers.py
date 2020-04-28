@@ -3,8 +3,8 @@ import unittest
 import unittest.mock
 
 import discord
-
 from tests import helpers
+
 
 
 class DiscordMocksTests(unittest.TestCase):
