@@ -27,6 +27,7 @@ grepfunc = "*"
 source = "*"
 rootpath = "*"
 gitpython = "*"
+mock = "*"
 
 [dev-packages]
 coverage = "~=5.0"

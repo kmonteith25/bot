@@ -8,6 +8,7 @@ from discord import Colour, DMChannel, Member, Message, TextChannel
 from discord.ext.commands import Cog
 from discord.utils import escape_markdown
 
+
 from bot.bot import Bot
 from bot.cogs.moderation import ModLog
 from bot.constants import (
@@ -99,6 +100,7 @@ class Filtering(Cog):
                     f"You messaged a bad word"
                 )
             },
+            # param for filtering nickname
             "watch_nickname": {
                 "enabled": Filter.watch_regex,
                 "type": "filter",
@@ -142,18 +144,18 @@ class Filtering(Cog):
             delta = relativedelta(after.edited_at, before.edited_at).microseconds
         await self._filter_message(after, delta)
 
-    async def _filter_nicknames(self, msg: Message) -> None:
+    async def _filter_nicknames(self, msg: Message) -> (bool, str):
         role_whitelisted = False
-        if type(msg.author) is Member:
+        if type(msg.author) is Member:  # check if has role or is whitelist
             for role in msg.author.roles:
                 if role.id in Filter.role_whitelist:
                     role_whitelisted = True
 
-        filter_nickname = (not role_whitelisted and not msg.author.bot)
+        filter_nickname = (not role_whitelisted and not msg.author.bot)  # check if not white list or bot
         if filter_nickname:
             _filter = self.filters.get("watch_nickname")
-            match = await _filter["function"](msg.author.display_name)
-            if match:
+            match = await _filter["function"](msg.author.display_name)  # check to find match of bad word
+            if match:  # if match delete msg
                 if _filter["type"] == "filter":
                     try:
                         await msg.delete()
@@ -165,7 +167,7 @@ class Filtering(Cog):
                         channel_str = "via DM"
                     else:
                         channel_str = f"in {msg.channel.mention}"
-                surroundings = match.string[max(match.start() - 10, 0): match.end() + 10]
+                surroundings = match.string[max(match.start() - 10, 0): match.end() + 10]  # find surrounding of name
                 message_content = (
                     f"**Match:** '{match[0]}'\n"
                     f"**Nickname:** '{escape_markdown(surroundings)}'"
@@ -177,8 +179,8 @@ class Filtering(Cog):
                     f"following username({msg.author.display_name}):\n\n"
                     f"{message_content}"
                 )
-                log.debug(message)
-                await msg.author.edit(nick=msg.author.name)
+                log.debug(message)  # send message
+                await msg.author.edit(nick=msg.author.name)  # change nick name into user name
                 self.bot.stats.incr(f"filters.Nickname Filter")
                 await self.mod_log.send_log_message(
                     icon_url=Icons.filtering,
@@ -189,6 +191,8 @@ class Filtering(Cog):
                     channel_id=Channels.mod_alerts,
                     ping_everyone=Filter.ping_everyone
                 )
+                return True,  msg.author.nick
+        return False, msg.author.nick
 
     async def _filter_message(self, msg: Message, delta: Optional[int] = None) -> None:
         """Filter the input message to see if it violates any of our rules, and then respond accordingly."""
