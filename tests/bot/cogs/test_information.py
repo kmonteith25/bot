@@ -219,7 +219,7 @@ class InformationCogTests(unittest.TestCase):
             )
         )
         self.assertEqual(embed.thumbnail.url, 'a-lemon.jpg')
-'''
+
 
 
 class UserInfractionHelperMethodTests(unittest.TestCase):
