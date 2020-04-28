@@ -1,11 +1,11 @@
 import logging
 import re
-from typing import Optional, Union
+from typing import Optional, Union, Tuple
 
 import discord.errors
 from dateutil.relativedelta import relativedelta
 from discord import Colour, DMChannel, Member, Message, TextChannel
-from discord.ext.commands import Cog
+from discord.ext.commands import Cog, command
 from discord.utils import escape_markdown
 
 from bot.bot import Bot
@@ -126,7 +126,7 @@ class Filtering(Cog):
     @Cog.listener()
     async def on_message(self, msg: Message) -> None:
         """Invoke message filter for new messages."""
-        await self._filter_nicknames(msg)
+        await self.nickname_filter(msg)
         await self._filter_message(msg)
 
     @Cog.listener()
@@ -142,13 +142,13 @@ class Filtering(Cog):
             delta = relativedelta(after.edited_at, before.edited_at).microseconds
         await self._filter_message(after, delta)
 
-    async def _filter_nicknames(self, msg: Message) -> None:
+    @command(name="filters")
+    async def nickname_filter(self, msg: Message) -> Tuple[bool, str]:
         role_whitelisted = False
         if type(msg.author) is Member:
             for role in msg.author.roles:
                 if role.id in Filter.role_whitelist:
                     role_whitelisted = True
-
         filter_nickname = (not role_whitelisted and not msg.author.bot)
         if filter_nickname:
             _filter = self.filters.get("watch_nickname")
@@ -158,7 +158,7 @@ class Filtering(Cog):
                     try:
                         await msg.delete()
                     except discord.errors.NotFound:
-                        return
+                        return False, None
                 if _filter["user_notification"]:
                     await self.notify_member(msg.author, _filter["notification_msg"], msg.channel)
                     if isinstance(msg.channel, DMChannel):
@@ -179,8 +179,9 @@ class Filtering(Cog):
                 )
                 log.debug(message)
                 await msg.author.edit(nick=msg.author.name)
+                msg.author.nick = msg.author.name
                 self.bot.stats.incr(f"filters.Nickname Filter")
-                await self.mod_log.send_log_message(
+                '''await self.mod_log.send_log_message(
                     icon_url=Icons.filtering,
                     colour=Colour(Colours.soft_red),
                     title=f"{_filter['type'].title()} triggered!",
@@ -188,7 +189,9 @@ class Filtering(Cog):
                     thumbnail=msg.author.avatar_url_as(static_format="png"),
                     channel_id=Channels.mod_alerts,
                     ping_everyone=Filter.ping_everyone
-                )
+                )'''
+                return True, msg.author.nick
+            return False, None
 
     async def _filter_message(self, msg: Message, delta: Optional[int] = None) -> None:
         """Filter the input message to see if it violates any of our rules, and then respond accordingly."""
