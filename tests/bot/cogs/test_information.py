@@ -9,6 +9,7 @@ from bot.cogs import information
 from datetime import datetime
 from bot.decorators import InChannelCheckFailure
 from tests import helpers
+import GithubLinkFinder
 
 
 COG_PATH = "bot.cogs.information.Information"
@@ -35,8 +36,8 @@ class InformationCogTests(unittest.TestCase):
         self.cog.source.can_run = unittest.mock.AsyncMock()
         self.cog.source.can_run.return_value = True
 
-        coroutine = self.cog.source.callback(self.cog, self.ctx, "free")
-
+        coroutine = self.cog.source.callback(self.cog, self.ctx, "bigbrother")
+        path = self.cog.get_commands_path("bigbrother")
         asyncio.run(coroutine)
 
         _, dummy_kwargs = self.ctx.send.call_args
@@ -46,7 +47,9 @@ class InformationCogTests(unittest.TestCase):
         self.assertEqual(dummy_embed.title, "Source Results")
         self.assertEqual(dummy_embed.colour, discord.Colour.blurple())
 
-        self.assertEqual(dummy_embed.fields[0].value, "https://github.com/kmonteith25/bot/blob/master/bot/cogs/free.py")
+        link_to_file = GithubLinkFinder.find_file_url(path)
+
+        self.assertEqual(dummy_embed.fields[0].value, link_to_file)
 
     def test_source_command_no_argument(self):
         """Tests the `source` command with no argument."""

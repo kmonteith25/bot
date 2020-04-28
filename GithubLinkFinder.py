@@ -20,9 +20,16 @@ def find_file_url(path: str) -> str or bool:
     header = {'Authorization': os.environ.get("GH_API_TOKEN")}
     response = requests.get("https://api.github.com/repos/" + constants.github_username + "/" +
                             constants.github_repo + "/contents" + path, headers=header)
-
     if str(response.status_code) == "200":
         data = response.json()
         return data["html_url"]
     else:
         return False
+
+
+def main():
+    find_base_url()
+
+
+if __name__ == '__main__':
+    main()
