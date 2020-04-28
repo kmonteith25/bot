@@ -30,7 +30,7 @@ class InformationCogTests(unittest.TestCase):
         self.ctx = helpers.MockContext()
         self.ctx.author.roles.append(self.moderator_role)
 
-    '''def test_source_command_good_argument(self):
+    def test_source_command_good_argument(self):
         """Tests the `source` command with an valid argument."""
         self.cog.source.can_run = unittest.mock.AsyncMock()
         self.cog.source.can_run.return_value = True
