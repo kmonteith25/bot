@@ -1,4 +1,3 @@
-import asyncio
 import logging
 import re
 from typing import Optional, Union, Tuple
@@ -8,7 +7,6 @@ from dateutil.relativedelta import relativedelta
 from discord import Colour, DMChannel, Member, Message, TextChannel
 from discord.ext.commands import Cog, command
 from discord.utils import escape_markdown
-
 
 from bot.bot import Bot
 from bot.cogs.moderation import ModLog

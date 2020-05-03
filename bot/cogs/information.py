@@ -161,14 +161,14 @@ class Information(Cog):
         embed.title = "Source Results"
 
         if command_name is None:
-            embed.add_field(name="Link", value=GithubLinkFinder.find_base_url(), inline=False)
+            embed.add_field(name="Link", value=GithubLinkFinder.find_base_url())
             results = await ctx.send(embed=embed)
         else:
             path = self.get_commands_path(command_name)
             if path is False:
                 embed.add_field(name="Error", value="Not an valid command", inline=False)
             else:
-                embed.add_field(name="Link", value=GithubLinkFinder.find_file_url(path), inline=False)
+                embed.add_field(name="Link", value=GithubLinkFinder.find_file_url(path))
             results = await ctx.send(embed=embed)
         return results
 
