@@ -112,7 +112,7 @@ ENV/
 log.*
 
 # Custom user configuration
-config.yml
+#config.yml
 
 # xmlrunner unittest XML reports
 TEST-**.xml
